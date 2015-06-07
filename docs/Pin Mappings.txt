@@ -1,0 +1,189 @@
+------ ARDUINO PIN MAPPINGS ------
+
+
+ATMega 168/328 Pin Mappings
+(Arduino Uno / Mini / Nano)
+
+                                                          __    __
+    ------------                                         |  \__/  |
+    ARDUINO   13|                                    GND |1     32| VCC (+5V)
+              12| SCLK  (pin 3)           BLANK (pin 10) |2     31| IREF (resistor -> GND)
+              11| SIN   (pin 4)            SCLK (pin 12) |3     30| XLAT (pin 9)
+              10| BLANK (pin 2)             SIN (pin 11) |4     29| SOUT (to SIN of next TLC)
+               9| XLAT  (pin 30)                    OUT0 |5     28| OUT23
+               8|                                   OUT1 |6     27| OUT22
+               7|                                   OUT2 |7     26| OUT21
+               6|                                   OUT3 |8     25| OUT20
+               5|                                   OUT4 |9     24| OUT19
+               4|                                   OUT5 |10    23| OUT18
+               3|                                   OUT6 |11    22| OUT17
+               2|                                   OUT7 |12    21| OUT16
+               1|                                   OUT8 |13    20| OUT15
+               0|                                   OUT9 |14    19| OUT14
+    ------------                                   OUT10 |15    18| OUT13
+                                                   OUT11 |16    17| OUT12
+                                                         |________|
+
+Put the longer leg (anode) of the LEDs in VCC and the shorter leg (cathode) in OUT(0-23).
+
++5V from Arduino -> TLC pin 32   (VCC)
+GND from Arduino -> TLC pin 1    (GND)
+digital 9        -> TLC pin 30   (XLAT)
+digital 10       -> TLC pin 2    (BLANK)
+digital 11       -> TLC pin 4    (SIN)
+digital 12       -> TLC pin 3    (SCLK)
+
+
+
+Arduino Pin		Port		Pin
+
+A0				PORTC		0
+A1				PORTC		1
+A2				PORTC		2
+A3				PORTC		3
+A4 (SDA)		PORTC		4
+A5 (SCL)		PORTC		5
+
+0 (RX)			PORTD		0
+1 (TX)			PORTD		1
+2				PORTD		2
+3				PORTD		3
+4				PORTD		4
+5				PORTD		5
+6				PORTD		6
+7				PORTD		7
+
+8				PORTB		0
+9				PORTB		1
+10 (SS)			PORTB		2
+11 (MOSI)		PORTB		3
+12 (MISO)		PORTB		4
+13 (SCK)		PORTB		5
+
+--------------------------------
+
+ATMega32u4 Pin Mappings
+(Arduino Leonardo / Micro)
+
+Arduino Pin		Port		Pin
+
+A0				PORTF		7
+A1				PORTF		6
+A2				PORTF		5
+A3				PORTF		4
+A4				PORTF		1
+A5				PORTF		0
+
+0 (RX)			PORTD		2
+1 (TX)			PORTD		3
+2 (SDA)			PORTD		1
+3 (SCL)			PORTD		0
+4				PORTD		4
+
+5				PORTC		6
+
+6				PORTD		7
+
+7				PORTE		6
+
+8				PORTB		4
+9				PORTB		5
+10 (SS)			PORTB		6
+11 (MOSI)		PORTB		7
+
+12 (MISO)		PORTD		6
+
+13 (SCK)		PORTC		7
+
+--------------------------------
+
+ATMega2560 Pin Mappings
+(Arduino Mega 2560 / Mega ADK)
+
+Arduino Pin		Port		Pin
+
+A0				PORTF		0
+A1				PORTF		1
+A2				PORTF		2
+A3				PORTF		3
+A4				PORTF		4
+A5				PORTF		5
+A6				PORTF		6
+A7				PORTF		7
+
+A8				PORTK		0
+A9				PORTK		1
+A10				PORTK		2
+A11				PORTK		3
+A12				PORTK		4
+A13				PORTK		5
+A14				PORTK		6
+A15				PORTK		7
+
+0 (RX0)			PORTE		0
+1 (TX0)			PORTE		1
+2				PORTE		4
+3				PORTE		5
+
+4				PORTG		5
+
+5				PORTE		3
+
+6				PORTH		3
+7				PORTH		4
+8				PORTH		5
+9				PORTH		6
+
+10				PORTB		4
+11				PORTB		5
+12				PORTB		6
+13				PORTB		7
+
+14 (TX3)		PORTJ		1
+15 (RX3)		PORTJ		0
+
+16 (TX2)		PORTH		1
+17 (RX2)		PORTH		0
+
+18 (TX1)		PORTD		3
+19 (RX1)		PORTD		2
+20 (SDA)		PORTD		1
+21 (SCL)		PORTD		0
+
+22				PORTA		0
+23				PORTA		1
+24				PORTA		2
+25				PORTA		3
+26				PORTA		4
+27				PORTA		5
+28				PORTA		6
+29				PORTA		7
+
+30				PORTC		7
+31				PORTC		6
+32				PORTC		5
+33				PORTC		4
+34				PORTC		3
+35				PORTC		2
+36				PORTC		1
+37				PORTC		0
+
+38				PORTD		7
+
+39				PORTG		2
+40				PORTG		1
+41				PORTG		0
+
+42				PORTL		7
+43				PORTL		6
+44				PORTL		5
+45				PORTL		4
+46				PORTL		3
+47				PORTL		2
+48				PORTL		1
+49				PORTL		0
+
+50 (MISO)		PORTB		3
+51 (MOSI)		PORTB		2
+52 (SCK)		PORTB		1
+53 (SS)			PORTB		0
