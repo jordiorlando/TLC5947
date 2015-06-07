@@ -6,9 +6,9 @@ ATMega 168/328 Pin Mappings
 
                                                           __    __
     ------------                                         |  \__/  |
-    ARDUINO   13|                                    GND |1     32| VCC (+5V)
-              12| SCLK  (pin 3)           BLANK (pin 10) |2     31| IREF (resistor -> GND)
-              11| SIN   (pin 4)            SCLK (pin 12) |3     30| XLAT (pin 9)
+    ARDUINO   13| SCLK  (pin 3)                      GND |1     32| VCC (+5V)
+              12|                         BLANK (pin 10) |2     31| IREF (resistor -> GND)
+              11| SIN   (pin 4)            SCLK (pin 13) |3     30| XLAT (pin 9)
               10| BLANK (pin 2)             SIN (pin 11) |4     29| SOUT (to SIN of next TLC)
                9| XLAT  (pin 30)                    OUT0 |5     28| OUT23
                8|                                   OUT1 |6     27| OUT22
@@ -31,7 +31,7 @@ GND from Arduino -> TLC pin 1    (GND)
 digital 9        -> TLC pin 30   (XLAT)
 digital 10       -> TLC pin 2    (BLANK)
 digital 11       -> TLC pin 4    (SIN)
-digital 12       -> TLC pin 3    (SCLK)
+digital 13       -> TLC pin 3    (SCLK)
 
 
 
