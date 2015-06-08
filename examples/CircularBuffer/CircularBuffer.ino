@@ -3,9 +3,9 @@
 //                                                                          //
 // -------                                    __    __                      //
 // ARDUINO|                                  |  \__/  |                     //
-//      13|                              GND |1     32| VCC (+5V)           //
-//      12| SCLK  (pin 3)     BLANK (pin 10) |2     31| IREF (R -> GND)     //
-//      11| SIN   (pin 4)      SCLK (pin 12) |3     30| XLAT (pin 9)        //
+//      13| SCLK  (pin 3)                GND |1     32| VCC (+5V)           //
+//      12|                   BLANK (pin 10) |2     31| IREF (R -> GND)     //
+//      11| SIN   (pin 4)      SCLK (pin 13) |3     30| XLAT (pin 9)        //
 //      10| BLANK (pin 2)       SIN (pin 11) |4     29| SOUT (next TLC SIN) //
 //       9| XLAT  (pin 30)              OUT0 |5     28| OUT23               //
 //       8|                             OUT1 |6     27| OUT22               //
@@ -29,7 +29,7 @@
 //  -  digital 9        -> TLC pin 30   (XLAT)                              //
 //  -  digital 10       -> TLC pin 2    (BLANK)                             //
 //  -  digital 11       -> TLC pin 4    (SIN)                               //
-//  -  digital 12       -> TLC pin 3    (SCLK)                              //
+//  -  digital 13       -> TLC pin 3    (SCLK)                              //
 //                                                                          //
 //  -  The 1k resistor between TLC pin 31 and GND will let ~30mA through    //
 //      each LED. This is calculated by the equation I = 49.2/R. This       //
@@ -42,7 +42,7 @@
 //  connected together. The one exception is that each TLC needs it's own   //
 //  resistor between pin 31 and GND.                                        //
 //                                                                          //
-//  This library uses pins 9, 10, 11, and 12.                               //
+//  This library uses pins 9, 10, 11, and 13.                               //
 //  Please do not use these pins.                                           //
 //                                                                          //
 //  This sketch does the Knight Rider strobe across a line of LEDs.         //
@@ -52,16 +52,6 @@
 // ======================================================================== //
 
 #include <TLC5947.h>
-
-// ------ Pin definitions from "Pin Mappings.txt" ------ //
-#define XLATPORT	PORTB
-#define BLANKPORT	PORTB
-#define XLATDDR		DDRB
-#define BLANKDDR	DDRB
-// The internal microcontroller label, not the printed Arduino pin number
-#define XLATPIN		1
-#define BLANKPIN	2
-// ------ Pin definitions from "Pin Mappings.txt" ------ //
 
 TLC5947 TLC;
 

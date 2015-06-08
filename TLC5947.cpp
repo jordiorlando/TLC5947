@@ -17,13 +17,48 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "TLC5947.h"
 
+// Pin definitions
+#if defined (__AVR_ATmega328__) || defined (__AVR_ATmega328P__)
+  #define XLATPORT	PORTB
+  #define XLATDDR		DDRB
+  #define XLATPIN		DDB1
+
+  #define BLANKPORT	PORTB
+  #define BLANKDDR	DDRB
+  #define BLANKPIN	DDB2
+
+  #define SCKPORT   PORTB
+  #define SCKDDR    DDRB
+  #define SCKPIN    DDB5
+
+  #define SINPORT   PORTB
+  #define SINDDR    DDRB
+  #define SINPIN    DDB3
+#elif defined (__AVR_ATmega16U4__) || defined (__AVR_ATmega32U4__)
+  #define XLATPORT	PORTB
+  #define XLATDDR		DDRB
+  #define XLATPIN		DDB1 // TODO: change this to the correct pin for ATmega32U4
+
+  #define BLANKPORT PORTB
+  #define BLANKDDR  DDRB
+  #define BLANKPIN  DDB0
+
+  #define SCKPORT   PORTB
+  #define SCKDDR    DDRB
+  #define SCKPIN    DDB1
+
+  #define SINPORT   PORTB
+  #define SINDDR    DDRB
+  #define SINPIN    DDB2
+#endif
+
 // Static variable definitions
 uint8_t TLC5947::s_nNumChips = 0;
 uint16_t** TLC5947::s_pnValues;
 uint16_t** TLC5947::s_pnValuesTemp;
 
 TLC5947::TLC5947(uint16_t nInitialValue) {
-  // Set all necessary pins to outputs
+  // Set latch and blank (SS) to outputs
   XLATDDR |= (1 << XLATPIN);
   BLANKDDR |= (1 << BLANKPIN);
 
@@ -39,11 +74,15 @@ TLC5947::TLC5947(uint16_t nInitialValue) {
   }
 
   if (s_nNumChips == 1) {
-    SPI.begin();
+    // Set MOSI and SCK as outputs
+    SCKDDR |= (1<<SCKPIN);
+    SINDDR |= (1<<SINPIN);
 
-    SPI.setClockDivider(SPI_CLOCK_DIV2); // Okay as long as uC clock is <= 60MHz
-    SPI.setBitOrder(MSBFIRST); // TLC5947 expects MSB first
-    SPI.setDataMode(SPI_MODE0); // TODO: make sure this is correct
+    // Enable SPI, master
+    SPCR = (1<<SPE) | (1<<MSTR);
+
+    // Set clock rate fck/2
+    SPSR |= (1<<SPI2X);
   }
 
   update();
@@ -51,7 +90,8 @@ TLC5947::TLC5947(uint16_t nInitialValue) {
 
 TLC5947::~TLC5947() {
   if (s_nNumChips == 1) {
-    SPI.end();
+    // Disable SPI
+    SPCR = 0;
   }
 
   s_nNumChips--;
@@ -242,34 +282,31 @@ bool TLC5947::shift(uint16_t nShift, uint16_t nValue) {
         // If we are shifting an odd number of channels, we no longer have a
         // nice whole number of bytes. For the last channel, we have to send
         // a byte and a nibble.
-        SPI.transfer((uint8_t)((p_nValues[i] >> 4) & 0x00FF));
+        while(!(SPSR & (1<<SPIF)));
+        SPDR = (uint8_t)((p_nValues[i] >> 4) & 0x00FF);
 
-        // TODO: figure out how to transfer the last nibble (4 bits)
-
-        /*
-
-        //SINDDR |= (1 << SINPIN);
-        //SCKDDR |= (1 << SCKPIN);
-
-        // Send data MSB first
-        for (uint8_t ii = 0; ii < 12; ii++) {
+        // TODO: figure out how to properly transfer the last nibble (4 bits)
+        while(!(SPSR & (1<<SPIF)));
+        for (uint8_t ii = 0; ii < 4; ii++) {
           // Send the current bit
-          if ((nValue << ii) & 0x0800) {
-            SINPORT |= (1 << SINPIN);
+          if (((p_nValues[i] & 0x000F)<<ii) & (1<<3)) {
+            SINPORT |= (1<<SINPIN);
           } else {
-            SINPORT &= ~(1 << SINPIN);
+            SINPORT &= ~(1<<SINPIN);
           }
 
           // Clock in the current bit (serial clock) [rising edge]
-          SCKPORT |= (1 << SCKPIN);
-          SCKPORT &= ~(1 << SCKPIN);
+          SCKPORT |= (1<<SCKPIN);
+          SCKPORT &= ~(1<<SCKPIN);
         }
-        */
       } else {
         // Break every two channels into 3 bytes and send them
-        SPI.transfer((uint8_t)((p_nValues[i] >> 4) & 0x00FF));
-        SPI.transfer((uint8_t)((p_nValues[i] << 4) & 0x00F0) | (uint8_t)((p_nValues[i - 1] >> 8) & 0x000F));
-        SPI.transfer((uint8_t)(p_nValues[i - 1] & 0x00FF));
+        while(!(SPSR & (1<<SPIF)));
+        SPDR = (uint8_t)((p_nValues[i] >> 4) & 0x00FF);
+        while(!(SPSR & (1<<SPIF)));
+        SPDR = (uint8_t)((p_nValues[i] << 4) & 0x00F0) | (uint8_t)((p_nValues[i - 1] >> 8) & 0x000F);
+        while(!(SPSR & (1<<SPIF)));
+        SPDR = (uint8_t)(p_nValues[i - 1] & 0x00FF);
       }
     }
 
@@ -296,9 +333,12 @@ void TLC5947::update(void) {
   // Actually shift the data out to the chips
   for (uint16_t i = (s_nNumChips * 24) - 1; i >= 0; i -= 2) {
     // Break every two channels into 3 bytes and send them
-    SPI.transfer((uint8_t)((s_pnValues[(i - (i % 24)) / 24][i % 24] >> 4) & 0x00FF));
-    SPI.transfer((uint8_t)((s_pnValues[(i - (i % 24)) / 24][i % 24] << 4) & 0x00F0) | (uint8_t)((s_pnValues[((i - 1) - ((i - 1) % 24)) / 24][(i - 1) % 24] >> 8) & 0x000F));
-    SPI.transfer((uint8_t)(s_pnValues[((i - 1) - ((i - 1) % 24)) / 24][(i - 1) % 24] & 0x00FF));
+    while(!(SPSR & (1<<SPIF)));
+    SPDR = (uint8_t)((s_pnValues[(i - (i % 24)) / 24][i % 24] >> 4) & 0x00FF);
+    while(!(SPSR & (1<<SPIF)));
+    SPDR = (uint8_t)((s_pnValues[(i - (i % 24)) / 24][i % 24] << 4) & 0x00F0) | (uint8_t)((s_pnValues[((i - 1) - ((i - 1) % 24)) / 24][(i - 1) % 24] >> 8) & 0x000F);
+    while(!(SPSR & (1<<SPIF)));
+    SPDR = (uint8_t)(s_pnValues[((i - 1) - ((i - 1) % 24)) / 24][(i - 1) % 24] & 0x00FF);
   }
 
   // Latch the data (send it to the outputs) [rising edge]

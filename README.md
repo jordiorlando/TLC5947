@@ -13,7 +13,7 @@ If you are daisy-chaining more than one TLC5947, connect the SOUT of the first T
 - (Optional): put a pull-up resistor (~10k) between BLANK and VCC so that all the LEDs will turn off when the Arduino is reset.
 
 ### Compatibility
-This library uses pins 9, 10, 11, and 12 on the Arduino Uno. Please do not use these pins.
+This library uses pins 9, 10, 11, and 13 on the Arduino Uno. Please do not use these pins.
 
 ## Functions:
 
@@ -80,8 +80,6 @@ Shifts all data in all chips by the given number of channels.
 Sends the data out to the chips and displays it.
 
 ## TODO
-- Use SPI instead of bitbanging everything
-- Support ATmegaXXU4 (Arduino Leonardo, Micro, etc)
 - Make set() and setAll() more concise
 - Improve documentation
 - Provide some form of BLANK control
