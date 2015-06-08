@@ -84,3 +84,4 @@ Sends the data out to the chips and displays it.
 - Improve documentation
 - Provide some form of BLANK control
 - Check compatibility with the new Arduino IDE
+- Allow the user to choose a custom pin for XLAT
