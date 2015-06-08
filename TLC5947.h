@@ -15,11 +15,11 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef TLC5947_h
-#define TLC5947_h
+#ifndef TLC5947_H
+#define TLC5947_H
 
-#include "Arduino.h"
-#include "SPI.h"
+#include <Arduino.h>
+#include <SPI.h>
 
 // Declare TLC5947 class and its member functions
 class TLC5947 {
