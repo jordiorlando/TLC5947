@@ -37,7 +37,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #elif defined (__AVR_ATmega16U4__) || defined (__AVR_ATmega32U4__)
   #define XLATPORT	PORTB
   #define XLATDDR		DDRB
-  #define XLATPIN		DDB1 // TODO: change this to the correct pin for ATmega32U4
+  #define XLATPIN		DDB7 // TODO: change this to the correct pin for ATmega32U4
 
   #define BLANKPORT PORTB
   #define BLANKDDR  DDRB
