@@ -25,10 +25,10 @@ The constructor for the TLC5947 library.
 ### chipID()
 Returns the ID number of the current chip.
 
-### set(nValue)
-Sets all channels on all chips to the same value.
+### read(nChannel)
+Returns the current value of the specified channel.
 #### Arguments
-- `nValue`: Brightness value for all channels. Range is [0-4095].
+- `nChannel`: Channel to be read.
 
 ### set(nChannel, nValue)
 Sets one channel to the specified value.
@@ -36,10 +36,15 @@ Sets one channel to the specified value.
 - `nChannel`: Channel to be set.
 - `nValue`: Brightness value for the channel. Range is [0-4095].
 
-### read(nChannel)
-Returns the current value of the specified channel.
+### set(nValue)
+Sets all channels to the same value.
 #### Arguments
-- `nChannel`: Channel to be read.
+- `nValue`: Brightness value for all channels. Range is [0-4095].
+
+### write(anValues[24])
+Sets all channels based on the given array.
+#### Arguments
+- `anValues[24]`: Brightness values for all channels. Range is [0-4095].
 
 ### clear()
 Sets all channels to 0.
@@ -49,39 +54,37 @@ Sets all channels to 0.
 ### numChips()
 Returns the total number of chips.
 
-### set(nChip, nChannel, nValue);
-Sets one channel on a specific chip to the specified value.
+### enable()
+Enable the chips by pulling the BLANK pin low.
+
+### disable()
+Disable the chips by pulling the BLANK pin high.
+
+### setAll(nValue);
+Sets all channels on all chips to the specified value.
 #### Arguments
-- `nChip`: Chip to be set.
-- `nChannel`: Channel to be set.
 - `nValue`: Brightness value for the channel. Range is [0-4095].
-
-### read(nChip, nChannel)
-Returns the current value of the specified channel.
-#### Arguments
-- `nChip`: Chip to be read.
-- `nChannel`: Channel to be read.
-
-### clear(nChip)
-Sets all channels on the given chip to 0.
-#### Arguments
-- `nChip`: Chip to be cleared.
 
 ### clearAll()
 Sets all channels on all chips to 0.
 
 ### shift(nShift, nValue);
-Shifts all data in all chips by the given number of channels.
+Shifts all data in all chips by the given number of channels. If nValue is left blank, a circular shift is performed, whereby the data being shifted out of the end gets added back to the beginning.
 #### Arguments
 - `nShift`: Number of channels to shift data by. Defaults to 1.
-- `nValue`: Brightness value to be shifted in. Range is [0-4095]. Defaults to 4095.
+- `nValue`: Brightness value to be shifted in. Range is [0-4095].
+
+### send()
+Shifts the data out to the chips.
+
+### latch()
+Latches the data to the outputs.
 
 ### update()
-Sends the data out to the chips and displays it.
+Calls send() and then latch(). This is all you should use unless your application requires finer control.
 
 ## TODO
-- Make set() and setAll() more concise
 - Improve documentation
-- Provide some form of BLANK control
-- Check compatibility with the new Arduino IDE
 - Allow the user to choose a custom pin for XLAT
+- Allow for per-chip blank control
+- Fix the code for shifting an odd number of channels
