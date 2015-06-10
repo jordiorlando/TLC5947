@@ -58,7 +58,7 @@ TLC5947 TLC; // Declare a new TLC5947 instance (repeat as necessary)
 // Create an array to store the LED values
 uint16_t *pnArray = new uint16_t[24 * TLC5947::numChips()];
 
-#define SPEED	1 // Change this to any value between 1 and 1000
+#define SPEED 10 // Change this to any value between 1 and 1000
 
 
 
@@ -94,15 +94,10 @@ void loop() {
 void updateArray() {
   // Subtract SPEED from every value in the LED array
   for (uint8_t i = 0; i < 24 * TLC5947::numChips(); i++) {
-    if (pnArray[i] >= SPEED) {
-      pnArray[i] -= SPEED;
-      TLC.set(i, pnArray[i]);
-    } else {
-      pnArray[i] = 0;
-      TLC.set(i, pnArray[i]);
-    }
+    pnArray[i] >= SPEED ? pnArray[i] -= SPEED : pnArray[i] = 0;
+    TLC.set(i, pnArray[i]);
   }
 
-  TLC.update(); // Update the chips (actually send the data)
+  TLC5947::update(); // Update the chips (actually send the data)
   delayMicroseconds(250); // Delay for stability
 }
