@@ -20,6 +20,60 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include <avr/io.h>
 
+// Pin definitions
+#if defined (__AVR_ATmega328__) || defined (__AVR_ATmega328P__)
+  // PB1
+  #define XLATPORT  PORTB
+  #define XLATDDR   DDRB
+  #define XLATPIN   DDB1
+  // SS
+  #define BLANKPORT PORTB
+  #define BLANKDDR  DDRB
+  #define BLANKPIN  DDB2
+  // SCK
+  #define SCKPORT   PORTB
+  #define SCKDDR    DDRB
+  #define SCKPIN    DDB5
+  // MOSI
+  #define SINPORT   PORTB
+  #define SINDDR    DDRB
+  #define SINPIN    DDB3
+#elif defined (__AVR_ATmega16U4__) || defined (__AVR_ATmega32U4__)
+  // PB7
+  #define XLATPORT  PORTB
+  #define XLATDDR   DDRB
+  #define XLATPIN   DDB7 // TODO: change this to the correct pin for ATmega32U4
+  // SS
+  #define BLANKPORT PORTB
+  #define BLANKDDR  DDRB
+  #define BLANKPIN  DDB0
+  // SCK
+  #define SCKPORT   PORTB
+  #define SCKDDR    DDRB
+  #define SCKPIN    DDB1
+  // MOSI
+  #define SINPORT   PORTB
+  #define SINDDR    DDRB
+  #define SINPIN    DDB2
+#elif defined (__AVR_ATmega2560__) // TODO: test this and support ATmega1280
+  // PD7
+  #define XLATPORT  PORTD
+  #define XLATDDR   DDRD
+  #define XLATPIN   DDD7
+  // SS
+  #define BLANKPORT PORTB
+  #define BLANKDDR  DDRB
+  #define BLANKPIN  DDB0
+  // SCK
+  #define SCKPORT   PORTB
+  #define SCKDDR    DDRB
+  #define SCKPIN    DDB1
+  // MOSI
+  #define SINPORT   PORTB
+  #define SINDDR    DDRB
+  #define SINPIN    DDB2
+#endif
+
 // Declare TLC5947 class and its member functions
 class TLC5947 {
   public:
@@ -28,29 +82,27 @@ class TLC5947 {
 
     uint8_t chipID(void);
     static uint8_t numChips(void);
-
-    bool set(uint16_t nValue);
-    bool set(uint8_t nChannel, uint16_t nValue);
-    static bool set(uint8_t nChip, uint8_t nChannel, uint16_t nValue);
-    static bool setAll(uint16_t nValue);
-    static bool setAll(uint8_t nChip, uint16_t nValue);
-
-    //void write(uint16_t anValues[24]);
-    //static void write(uint8_t nChip, uint16_t anValues[24]);
-
     uint16_t read(uint8_t nChannel);
-    static uint16_t read(uint8_t nChip, uint8_t nChannel);
+
+    static void enable(void);
+    static void disable(void);
+
+    void set(uint8_t nChannel, uint16_t nValue);
+    void set(uint16_t nValue);
+    static void setAll(uint16_t nValue);
+    void write(uint16_t anValues[24]); // TODO: change name to set()?
 
     void clear(void);
-    static bool clear(uint8_t nChip);
     static void clearAll(void);
 
-    static bool shift(uint16_t nShift = 1, uint16_t nValue = 0xFFFF);
-
+    static void shift(uint16_t nShift = 1, uint16_t nValue = 0xFFFF);
+    static void send(void);
+    static void latch(void);
     static void update(void);
 
   private:
     static void embiggen(void);
+
     static uint8_t s_nNumChips;
     static uint16_t **s_pnValues;
     static uint16_t **s_pnValuesTemp;
