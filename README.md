@@ -13,7 +13,7 @@ If you are daisy-chaining more than one TLC5947, connect the SOUT of the first T
 - (Optional): put a pull-up resistor (~10k) between BLANK and VCC so that all the LEDs will turn off when the Arduino is reset.
 
 ### Compatibility
-This library uses pins 9, 10, 11, and 13 on the Arduino Uno. Please do not use these pins.
+This library uses pins 9, 10, 11, and 13 on the Arduino Uno. Please do not use these pins. It also uses SPI to send the data, so it may conflict with any other libraries that attempt to use SPI.
 
 ## Functions:
 
