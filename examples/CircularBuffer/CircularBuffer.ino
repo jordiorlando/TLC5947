@@ -45,7 +45,7 @@
 //  This library uses pins 9, 10, 11, and 13.                               //
 //  Please do not use these pins.                                           //
 //                                                                          //
-//  This sketch does the Knight Rider strobe across a line of LEDs.         //
+//  This sketch does                                                        //
 //                                                                          //
 //  Jordi Orlando, 03/14/14                                                 //
 //  For documentation, please visit hexa.io                                 //
@@ -76,7 +76,6 @@ void loop() {
   }
 
   TLC5947::shift(1, nSum);
-  TLC5947::update();
 
   delay(SPEED);
 }
