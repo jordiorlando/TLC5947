@@ -1,8 +1,9 @@
 # TLC5947 Library for Arduino
-For documentation, please visit [hexa.io](http://hexa.io)
 
 ## Features
 - Supports up to 255 daisy-chained chips.
+- Allows for enabling or disabling all outputs simultaneously.
+- Uses hardware SPI so that you can get the most out of 16MHz.
 
 ## Physical Constraints
 The TLC5947 has 12 bits of resolution for each of its 24 channels. Each channel is a constant-current sink, meaning that it cannot source any current. It also does not matter what voltage is applied to the pins, you can run the LEDS from up to 30V.
