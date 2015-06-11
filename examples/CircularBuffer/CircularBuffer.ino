@@ -45,26 +45,31 @@
 //  This library uses pins 9, 10, 11, and 13.                               //
 //  Please do not use these pins.                                           //
 //                                                                          //
-//  This sketch does                                                        //
+//  This sketch does a cicular pattern on a string of LEDs.                 //
 //                                                                          //
-//  Jordi Orlando, 03/14/14                                                 //
-//  For documentation, please visit hexa.io                                 //
+//  Jordi Pakey-Rodriguez, 2015-06-10                                       //
+//  For documentation, please visit https://github.com/D1SC0tech/TLC5947    //
 // ======================================================================== //
 
 #include <TLC5947.h>
 
 TLC5947 TLC;
 
-#define INPUT_PIN	A0
-#define CLEAR_PIN	13
-
-#define SPEED		50
+// Connect a potentiometer to this pin
+#define INPUT_PIN A0
+// Pull this pin low (connect to GND) to clear the input
+#define CLEAR_PIN 13
+// Change this to any value between 1 and 1000
+#define SPEED     50
 
 
 
 void setup() {
+  // Set the pin directions
   pinMode(INPUT_PIN, INPUT);
   pinMode(CLEAR_PIN, INPUT);
+
+  // Enable the internal pullup on pin 13
   digitalWrite(CLEAR_PIN, HIGH);
 }
 
@@ -75,7 +80,8 @@ void loop() {
     nSum = 0;
   }
 
-  TLC5947::shift(1, nSum);
+  // Shift the data in the chips by two channels
+  TLC5947::shift(2, nSum);
 
   delay(SPEED);
 }
