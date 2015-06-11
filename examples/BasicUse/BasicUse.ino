@@ -47,8 +47,8 @@
 //                                                                          //
 //  This sketch does the Knight Rider strobe across a line of LEDs.         //
 //                                                                          //
-//  Jordi Orlando, 03/14/14                                                 //
-//  For documentation, please visit hexa.io                                 //
+//  Jordi Pakey-Rodriguez, 2015-06-10                                       //
+//  For documentation, please visit https://github.com/D1SC0tech/TLC5947    //
 // ======================================================================== //
 
 #include <TLC5947.h> // Include statement for the TLC5947 library
@@ -58,7 +58,8 @@ TLC5947 TLC; // Declare a new TLC5947 instance (repeat as necessary)
 // Create an array to store the LED values
 uint16_t *pnArray = new uint16_t[24 * TLC5947::numChips()];
 
-#define SPEED 10 // Change this to any value between 1 and 1000
+// Change this to any value between 1 and 1000
+#define SPEED 10
 
 
 
