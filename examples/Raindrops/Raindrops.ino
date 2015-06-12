@@ -52,26 +52,27 @@
 // ======================================================================== //
 
 #include <TLC5947.h> // Include statement for the TLC5947 library
+#include <avr/pgmspace.h> // Include the pgmspace library for PROGMEM support
 
 TLC5947 TLC; // Declare a new TLC5947 instance (repeat as necessary)
 
 // Wolfram Alpha:
 // Table[floor(Re(ln(x))*255/Re(ln(-0.015625))), {x, -1, -0.015625, 0.015625}]
-static const uint8_t raindropTable[64] = {
+static const uint8_t raindropTable[64] PROGMEM = {
   0, 0, 1, 2, 3, 4, 6, 7, 8, 9, 10, 11, 12, 13, 15, 16,
   17, 18, 20, 21, 22, 24, 25, 27, 28, 30, 31, 33, 35, 37, 38, 40,
   42, 44, 46, 48, 50, 52, 55, 57, 60, 62, 65, 68, 71, 74, 77, 81,
   85, 88, 93, 97, 102, 107, 113, 120, 127, 135, 145, 156, 170, 187, 212, 255
 };
 /*// Table[floor(-(1/x+1) * 255/63), {x, -1, -0.015625, 0.015625}]
-static const uint8_t raindropTable[64] = {
+static const uint8_t raindropTable[64] PROGMEM = {
   0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1,
   1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3,
   4, 4, 4, 4, 5, 5, 5, 6, 6, 7, 7, 8, 8, 9, 10, 11,
   12, 13, 14, 15, 17, 19, 21, 24, 28, 32, 39, 47, 60, 82, 125, 255
 };
 // Table[floor(-(1/x+1) * 3145/21), {x, -1, -0.37, 0.01}]
-static const uint8_t raindropTable[64] = {
+static const uint8_t raindropTable[64] PROGMEM = {
   0, 1, 3, 4, 6, 7, 9, 11, 13, 14, 16, 18, 20, 22, 24, 26,
   28, 30, 32, 35, 37, 39, 42, 44, 47, 49, 52, 55, 58, 61, 64, 67,
   70, 73, 77, 80, 84, 87, 91, 95, 99, 104, 108, 112, 117, 122, 127, 132,
@@ -101,11 +102,11 @@ void loop() {
   for (uint8_t i = 0; i < TLC5947::numChips() * 8; i++) {
     if (pnArray[i] < 255) {
       // Set green
-      TLC.set(i * 3, (uint16_t)raindropTable[pnArray[i]] * BRIGHTNESS);
+      TLC.set(i * 3, (uint16_t)pgm_read_byte_near(raindropTable + pnArray[i]) * BRIGHTNESS);
       // Set red
-      TLC.set((i * 3) + 1, (uint16_t)raindropTable[pnArray[i]] * BRIGHTNESS);
+      TLC.set((i * 3) + 1, (uint16_t)pgm_read_byte_near(raindropTable + pnArray[i]) * BRIGHTNESS);
       // Set blue
-      TLC.set((i * 3) + 2, (uint16_t)raindropTable[pnArray[i]] * BRIGHTNESS);
+      TLC.set((i * 3) + 2, (uint16_t)pgm_read_byte_near(raindropTable + pnArray[i]) * BRIGHTNESS);
       pnArray[i]--;
     }
   }
