@@ -106,6 +106,9 @@ class TLC5947 {
     static uint8_t s_nNumChips;
     static uint16_t **s_pnValues;
     static uint16_t **s_pnValuesTemp;
+
+    static bool s_bModified;
+
     uint8_t m_nChip;
 };
 

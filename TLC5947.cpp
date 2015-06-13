@@ -21,6 +21,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 uint8_t TLC5947::s_nNumChips = 0;
 uint16_t** TLC5947::s_pnValues;
 uint16_t** TLC5947::s_pnValuesTemp;
+bool TLC5947::s_bModified = true;
 
 TLC5947::TLC5947(uint16_t nInitialValue) {
   // Set latch and blank (SS) to outputs
@@ -129,38 +130,64 @@ void TLC5947::disable(void) {
 }
 
 void TLC5947::set(uint8_t nChannel, uint16_t nValue) {
+  nValue &= 0x0FFF;
+
+  uint8_t i;
   if (nChannel < 24) {
-    s_pnValues[m_nChip][nChannel] = nValue;
+    i = m_nChip;
   } else {
-    s_pnValues[(nChannel - (nChannel % 24)) / 24][nChannel % 24] = nValue;
+    i = (nChannel - (nChannel % 24)) / 24;
+  }
+
+  if (s_pnValues[i][nChannel % 24] != nValue) {
+    s_pnValues[i][nChannel % 24] = nValue;
+    s_bModified = true;
   }
 }
 
 void TLC5947::set(uint16_t nValue) {
+  nValue &= 0x0FFF;
+
   // Set all values to nValue
   for (uint8_t i = 0; i < 24; i++) {
-    s_pnValues[m_nChip][i] = nValue;
+    if (s_pnValues[m_nChip][i] != nValue) {
+      s_pnValues[m_nChip][i] = nValue;
+      s_bModified = true;
+    }
   }
 }
 
 void TLC5947::setAll(uint16_t nValue) {
+  nValue &= 0x0FFF;
+
   for (uint8_t i = 0; i < s_nNumChips; i++) {
     for (uint8_t ii = 0; ii < 24; ii++) {
-      s_pnValues[i][ii] = nValue;
+      if (s_pnValues[i][ii] != nValue) {
+        s_pnValues[i][ii] = nValue;
+        s_bModified = true;
+      }
     }
   }
 }
 
 void TLC5947::write(uint16_t anValues[24]) {
   for (uint8_t i = 0; i < 24; i++) {
-    s_pnValues[m_nChip][i] = anValues[i];
+    anValues[i] &= 0x0FFF;
+
+    if (s_pnValues[m_nChip][i] != anValues[i]) {
+      s_pnValues[m_nChip][i] = anValues[i];
+      s_bModified = true;
+    }
   }
 }
 
 void TLC5947::clear(void) {
   // Set all values to zero
   for (uint8_t i = 0; i < 24; i++) {
-    s_pnValues[m_nChip][i] = 0;
+    if (s_pnValues[m_nChip][i]) {
+      s_pnValues[m_nChip][i] = 0;
+      s_bModified = true;
+    }
   }
 }
 
@@ -168,7 +195,10 @@ void TLC5947::clearAll(void) {
   // Set all chips to zero
   for (uint8_t i = 0; i < s_nNumChips; i++) {
     for (uint8_t ii = 0; ii < 24; ii++) {
-      s_pnValues[i][ii] = 0;
+      if (s_pnValues[i][ii]) {
+        s_pnValues[i][ii] = 0;
+        s_bModified = true;
+      }
     }
   }
 }
@@ -205,6 +235,7 @@ void TLC5947::shift(uint16_t nShift, uint16_t nValue) {
     }
   }
 
+  // Disable the outputs
   disable();
 
   // Actually shift the data out to the chips
@@ -243,16 +274,16 @@ void TLC5947::shift(uint16_t nShift, uint16_t nValue) {
 
   // Latch the data (send it to the outputs)
   latch();
-
+  // Enable the outputs
   enable();
+  // Clear the modified flag
+  s_bModified = false;
 
   // No memory leaks here!
   delete[] p_nValues;
 }
 
 void TLC5947::send(void) {
-  disable();
-
   // Shift the data out to the chips
   for (int16_t i = (s_nNumChips * 24) - 1; i >= 0; i -= 2) {
     // Break every two channels into 3 bytes and send them
@@ -263,8 +294,6 @@ void TLC5947::send(void) {
     while(!(SPSR & (1<<SPIF)));
     SPDR = (uint8_t)(s_pnValues[((i - 1) - ((i - 1) % 24)) / 24][(i - 1) % 24] & 0x00FF);
   }
-
-  enable();
 }
 
 void TLC5947::latch(void) {
@@ -274,8 +303,17 @@ void TLC5947::latch(void) {
 }
 
 void TLC5947::update(void) {
-  // Shift the data out to the chips
-  send();
-  // Latch the data to the outputs
-  latch();
+  if (s_bModified) {
+    // Disable the outputs
+    disable();
+    // Shift the data out to the chips
+    send();
+    // Latch the data to the outputs
+    latch();
+    // Enable the outputs
+    enable();
+
+    // Clear the modified flag
+    s_bModified = false;
+  }
 }
