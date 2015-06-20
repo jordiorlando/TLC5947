@@ -22,33 +22,30 @@ uint8_t TLC5947::s_nNumChips = 0;
 uint16_t** TLC5947::s_pnValues;
 uint16_t** TLC5947::s_pnValuesTemp;
 bool TLC5947::s_bModified = true;
+bool TLC5947::s_bSPIenabled = false;
 
 TLC5947::TLC5947(uint16_t nInitialValue) {
   // Set latch and blank (SS) to outputs
   XLATDDR |= (1<<XLATPIN);
   BLANKDDR |= (1<<BLANKPIN);
 
+  // Set the BLANK pin high
   disable();
+  // Ensure that the Latch Pin is off
+  XLATPORT &= ~(1<<XLATPIN);
 
-  XLATPORT &= ~(1<<XLATPIN); // Ensure that the Latch Pin is off
-
-  if (s_nNumChips == 0) {
-    // Set MOSI and SCK as outputs
-    SCKDDR |= (1<<SCKPIN);
-    SINDDR |= (1<<SINPIN);
-
-    // Enable SPI, master
-    SPCR = (1<<SPE) | (1<<MSTR);
-
-    // Set clock rate fck/2
-    SPSR |= (1<<SPI2X);
+  if (!s_nNumChips) {
+    // Enable the SPI interface
+    enableSPI();
 
     // Send a blank byte so that the SPIF bit is set
     SPDR = 0;
   }
 
-  m_nChip = s_nNumChips; // Set current ID based on number of total chips
-  embiggen(); // Embiggen the data array
+  // Set current ID based on number of total chips
+  m_nChip = s_nNumChips;
+  // Embiggen the data array
+  embiggen();
 
   for (uint8_t i = 0; i < 24; i++) {
     s_pnValues[m_nChip][i] = nInitialValue;
@@ -58,14 +55,12 @@ TLC5947::TLC5947(uint16_t nInitialValue) {
 }
 
 TLC5947::~TLC5947() {
-  disable();
-
-  if (s_nNumChips == 1) {
-    // Disable SPI
-    SPCR = 0;
-  }
-
   s_nNumChips--;
+
+  if (!s_nNumChips) {
+    // Disable the SPI interface
+    disableSPI();
+  }
 }
 
 void TLC5947::embiggen(void) {
@@ -89,8 +84,10 @@ void TLC5947::embiggen(void) {
     }
     delete[] s_pnValues;
 
-    s_pnValues = s_pnValuesTemp; // Point the array at the new array
-    s_pnValuesTemp = 0; // Nullify the temporary pointer
+    // Point the array at the new array location
+    s_pnValues = s_pnValuesTemp;
+    // Nullify the temporary pointer
+    s_pnValuesTemp = 0;
   } else {
     // Allocate a dynamic multidimensional array
     s_pnValues = new uint16_t*[s_nNumChips + 1];
@@ -119,14 +116,27 @@ uint16_t TLC5947::read(uint8_t nChannel) {
   }
 }
 
-void TLC5947::enable(void) {
-  // Enable all outputs (BLANK low)
-  BLANKPORT &= ~(1<<BLANKPIN);
+void TLC5947::set(uint16_t anValues[24]) {
+  for (uint8_t i = 0; i < 24; i++) {
+    anValues[i] &= 0x0FFF;
+
+    if (s_pnValues[m_nChip][i] != anValues[i]) {
+      s_pnValues[m_nChip][i] = anValues[i];
+      s_bModified = true;
+    }
+  }
 }
 
-void TLC5947::disable(void) {
-  // Disable all outputs (BLANK high)
-  BLANKPORT |= (1<<BLANKPIN);
+void TLC5947::set(uint16_t nValue) {
+  nValue &= 0x0FFF;
+
+  // Set all values to nValue
+  for (uint8_t i = 0; i < 24; i++) {
+    if (s_pnValues[m_nChip][i] != nValue) {
+      s_pnValues[m_nChip][i] = nValue;
+      s_bModified = true;
+    }
+  }
 }
 
 void TLC5947::set(uint8_t nChannel, uint16_t nValue) {
@@ -145,18 +155,6 @@ void TLC5947::set(uint8_t nChannel, uint16_t nValue) {
   }
 }
 
-void TLC5947::set(uint16_t nValue) {
-  nValue &= 0x0FFF;
-
-  // Set all values to nValue
-  for (uint8_t i = 0; i < 24; i++) {
-    if (s_pnValues[m_nChip][i] != nValue) {
-      s_pnValues[m_nChip][i] = nValue;
-      s_bModified = true;
-    }
-  }
-}
-
 void TLC5947::setAll(uint16_t nValue) {
   nValue &= 0x0FFF;
 
@@ -166,17 +164,6 @@ void TLC5947::setAll(uint16_t nValue) {
         s_pnValues[i][ii] = nValue;
         s_bModified = true;
       }
-    }
-  }
-}
-
-void TLC5947::write(uint16_t anValues[24]) {
-  for (uint8_t i = 0; i < 24; i++) {
-    anValues[i] &= 0x0FFF;
-
-    if (s_pnValues[m_nChip][i] != anValues[i]) {
-      s_pnValues[m_nChip][i] = anValues[i];
-      s_bModified = true;
     }
   }
 }
@@ -203,6 +190,8 @@ void TLC5947::clearAll(void) {
   }
 }
 
+// TODO: warn the user if they have modified anything before calling shift(). In
+// this situation, the un-sent data will be lost.
 void TLC5947::shift(uint16_t nShift, uint16_t nValue) {
   if (nShift >= (s_nNumChips * 24)) {
     nShift %= (s_nNumChips * 24);
@@ -233,6 +222,11 @@ void TLC5947::shift(uint16_t nShift, uint16_t nValue) {
       // Restore the overflow data
       s_pnValues[(i - (i % 24)) / 24][i % 24] = p_nValues[i];
     }
+  }
+
+  // Enable SPI if it isn't already on
+  if (!s_bSPIenabled) {
+    enableSPI();
   }
 
   // Disable the outputs
@@ -283,6 +277,40 @@ void TLC5947::shift(uint16_t nShift, uint16_t nValue) {
   delete[] p_nValues;
 }
 
+void TLC5947::enableSPI() {
+  // Set MOSI and SCK as outputs
+  SCKDDR |= (1<<SCKPIN);
+  SINDDR |= (1<<SINPIN);
+
+  // Enable SPI, master
+  SPCR = (1<<SPE) | (1<<MSTR);
+
+  // Set clock rate fck/2
+  SPSR |= (1<<SPI2X);
+
+  s_bSPIenabled = true;
+}
+
+void TLC5947::disableSPI() {
+  // Disable SPI
+  SPCR = 0;
+
+  // Reset clock rate
+  SPSR &= ~(1<<SPI2X);
+
+  s_bSPIenabled = false;
+}
+
+void TLC5947::enable(void) {
+  // Enable all outputs (BLANK low)
+  BLANKPORT &= ~(1<<BLANKPIN);
+}
+
+void TLC5947::disable(void) {
+  // Disable all outputs (BLANK high)
+  BLANKPORT |= (1<<BLANKPIN);
+}
+
 void TLC5947::send(void) {
   // Shift the data out to the chips
   for (int16_t i = (s_nNumChips * 24) - 1; i >= 0; i -= 2) {
@@ -304,6 +332,10 @@ void TLC5947::latch(void) {
 
 void TLC5947::update(void) {
   if (s_bModified) {
+    // Enable SPI if it isn't already on
+    if (!s_bSPIenabled) {
+      enableSPI();
+    }
     // Disable the outputs
     disable();
     // Shift the data out to the chips

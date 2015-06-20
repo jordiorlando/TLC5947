@@ -31,21 +31,21 @@ Returns the current value of the specified channel.
 #### Arguments
 - `nChannel`: Channel to be read.
 
-### set(nChannel, nValue)
-Sets one channel to the specified value.
+### set(anValues[24])
+Sets all channels based on the given array.
 #### Arguments
-- `nChannel`: Channel to be set.
-- `nValue`: Brightness value for the channel. Range is [0-4095].
+- `anValues[24]`: Brightness values for all channels. Range is [0-4095].
 
 ### set(nValue)
 Sets all channels to the same value.
 #### Arguments
 - `nValue`: Brightness value for all channels. Range is [0-4095].
 
-### write(anValues[24])
-Sets all channels based on the given array.
+### set(nChannel, nValue)
+Sets one channel to the specified value.
 #### Arguments
-- `anValues[24]`: Brightness values for all channels. Range is [0-4095].
+- `nChannel`: Channel to be set.
+- `nValue`: Brightness value for the channel. Range is [0-4095].
 
 ### clear()
 Sets all channels to 0.
@@ -54,12 +54,6 @@ Sets all channels to 0.
 
 ### numChips()
 Returns the total number of chips.
-
-### enable()
-Enable the chips by pulling the BLANK pin low.
-
-### disable()
-Disable the chips by pulling the BLANK pin high.
 
 ### setAll(nValue);
 Sets all channels on all chips to the specified value.
@@ -75,6 +69,18 @@ Shifts all data in all chips by the given number of channels. If nValue is left 
 - `nShift`: Number of channels to shift data by. Defaults to 1.
 - `nValue`: Brightness value to be shifted in. Range is [0-4095].
 
+### enableSPI()
+Enable the SPI interface.
+
+### disableSPI()
+Disable the SPI interface.
+
+### enable()
+Enable the chips by pulling the BLANK pin low.
+
+### disable()
+Disable the chips by pulling the BLANK pin high.
+
 ### send()
 Shifts the data out to the chips.
 
@@ -82,7 +88,7 @@ Shifts the data out to the chips.
 Latches the data to the outputs.
 
 ### update()
-Calls send() and then latch(). This is all you should use unless your application requires finer control.
+Calls enableSPI() if needed, then send() and latch(). This is all you should use unless your application requires finer control.
 
 ## TODO
 - Improve documentation

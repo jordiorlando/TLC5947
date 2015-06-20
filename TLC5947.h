@@ -82,20 +82,23 @@ class TLC5947 {
 
     uint8_t chipID(void);
     static uint8_t numChips(void);
+
     uint16_t read(uint8_t nChannel);
 
-    static void enable(void);
-    static void disable(void);
-
-    void set(uint8_t nChannel, uint16_t nValue);
+    void set(uint16_t anValues[24]);
     void set(uint16_t nValue);
+    void set(uint8_t nChannel, uint16_t nValue);
     static void setAll(uint16_t nValue);
-    void write(uint16_t anValues[24]); // TODO: change name to set()?
 
     void clear(void);
     static void clearAll(void);
 
     static void shift(uint16_t nShift = 1, uint16_t nValue = 0xFFFF);
+    
+    static void enableSPI(void);
+    static void disableSPI(void);
+    static void enable(void);
+    static void disable(void);
     static void send(void);
     static void latch(void);
     static void update(void);
@@ -108,6 +111,7 @@ class TLC5947 {
     static uint16_t **s_pnValuesTemp;
 
     static bool s_bModified;
+    static bool s_bSPIenabled;
 
     uint8_t m_nChip;
 };
