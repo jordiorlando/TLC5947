@@ -54,7 +54,7 @@
 #include <TLC5947.h> // Include statement for the TLC5947 library
 #include <avr/pgmspace.h> // Include the pgmspace library for PROGMEM support
 
-TLC5947 TLC; // Declare a new TLC5947 instance (repeat as necessary)
+TLC5947 TLC(PB1, PB2); // Declare a new TLC5947 instance (repeat as necessary)
 
 // Wolfram Alpha:
 // Table[floor(Re(ln(x))*255/Re(ln(-0.015625))), {x, -1, -0.015625, 0.015625}]

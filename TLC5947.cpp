@@ -18,21 +18,37 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "TLC5947.h"
 
 // Static variable definitions
+pin* TLC5947::s_pnLatch;
+pin* TLC5947::s_pnBlank;
 uint8_t TLC5947::s_nNumChips = 0;
 uint16_t** TLC5947::s_pnValues;
-uint16_t** TLC5947::s_pnValuesTemp;
 bool TLC5947::s_bModified = true;
 bool TLC5947::s_bSPIenabled = false;
 
-TLC5947::TLC5947(uint16_t nInitialValue) {
+TLC5947::TLC5947() : TLC5947(s_pnLatch[0], s_pnBlank[0]) {
+  // TODO: warn the user if they don't initialize the first chip
+  //#if (s_nNumChips == 0)
+  //#  error "You must define pins for the first chip"
+  //#endif
+}
+
+TLC5947::TLC5947(pin nLatch, pin nBlank) {
+  // Set current ID based on number of total chips
+  m_nChip = s_nNumChips;
+  // Embiggen the data array
+  embiggen();
+
+  s_pnLatch[m_nChip] = nLatch;
+  s_pnBlank[m_nChip] = nBlank;
+
   // Set latch and blank (SS) to outputs
-  XLATDDR |= (1<<XLATPIN);
-  BLANKDDR |= (1<<BLANKPIN);
+  s_pnLatch[m_nChip].ddr |= _BV(s_pnLatch[m_nChip].pin);
+  s_pnBlank[m_nChip].ddr |= _BV(s_pnBlank[m_nChip].pin);
 
   // Set the BLANK pin high
   disable();
   // Ensure that the Latch Pin is off
-  XLATPORT &= ~(1<<XLATPIN);
+  s_pnLatch[m_nChip].port &= ~(_BV(s_pnLatch[m_nChip].pin));
 
   if (!s_nNumChips) {
     // Enable the SPI interface
@@ -42,22 +58,14 @@ TLC5947::TLC5947(uint16_t nInitialValue) {
     SPDR = 0;
   }
 
-  // Set current ID based on number of total chips
-  m_nChip = s_nNumChips;
-  // Embiggen the data array
-  embiggen();
-
-  for (uint8_t i = 0; i < 24; i++) {
-    s_pnValues[m_nChip][i] = nInitialValue;
-  }
-
+  // Set all channels to start at 0
+  clear();
   update();
 }
 
 TLC5947::~TLC5947() {
-  s_nNumChips--;
-
-  if (!s_nNumChips) {
+  // TODO: properly shrink the arrays
+  if (!m_nChip) {
     // Disable the SPI interface
     disableSPI();
   }
@@ -65,17 +73,23 @@ TLC5947::~TLC5947() {
 
 void TLC5947::embiggen(void) {
   if (s_nNumChips) {
+    // TODO: add a buffer in here so that we don't waste any space in RAM
     // Allocate a dynamic multidimensional array
-    s_pnValuesTemp = new uint16_t*[s_nNumChips + 1];
+    uint16_t **s_pnValuesTemp = new uint16_t*[s_nNumChips + 1];
     for (uint8_t i = 0; i < s_nNumChips + 1; i++) {
       s_pnValuesTemp[i] = new uint16_t[24];
     }
+    pin *s_pnLatchTemp = new pin[s_nNumChips + 1];
+    pin *s_pnBlankTemp = new pin[s_nNumChips + 1];
 
     // Copy the array to the new temporary array
     for (uint8_t i = 0; i < s_nNumChips; i++) {
       for (uint8_t ii = 0; ii < 24; ii++) {
         s_pnValuesTemp[i][ii] = s_pnValues[i][ii];
       }
+
+      s_pnLatchTemp[i] = s_pnLatch[i];
+      s_pnBlankTemp[i] = s_pnBlank[i];
     }
 
     // Delete the dynamic multidimensional array
@@ -83,17 +97,26 @@ void TLC5947::embiggen(void) {
       delete[] s_pnValues[i];
     }
     delete[] s_pnValues;
+    delete[] s_pnLatch;
+    delete[] s_pnBlank;
 
     // Point the array at the new array location
     s_pnValues = s_pnValuesTemp;
+    s_pnLatch = s_pnLatchTemp;
+    s_pnBlank = s_pnBlankTemp;
     // Nullify the temporary pointer
     s_pnValuesTemp = 0;
+    s_pnLatchTemp = 0;
+    s_pnBlankTemp = 0;
   } else {
     // Allocate a dynamic multidimensional array
-    s_pnValues = new uint16_t*[s_nNumChips + 1];
+    s_pnValues = new uint16_t*[1];
     for (uint8_t i = 0; i < s_nNumChips + 1; i++) {
       s_pnValues[i] = new uint16_t[24];
     }
+
+    s_pnLatch = new pin;
+    s_pnBlank = new pin;
   }
 
   s_nNumChips++;
@@ -230,7 +253,9 @@ void TLC5947::shift(uint16_t nShift, uint16_t nValue) {
   }
 
   // Disable the outputs
-  disable();
+  for (uint8_t i = 0; i < s_nNumChips; i++) {
+    disable(i);
+  }
 
   // Actually shift the data out to the chips
   for (int16_t i = nShift - 1; i >= 0; i -= 2) {
@@ -267,9 +292,13 @@ void TLC5947::shift(uint16_t nShift, uint16_t nValue) {
   }
 
   // Latch the data (send it to the outputs)
-  latch();
+  for (uint8_t i = 0; i < s_nNumChips; i++) {
+    latch(i);
+  }
   // Enable the outputs
-  enable();
+  for (uint8_t i = 0; i < s_nNumChips; i++) {
+    enable(i);
+  }
   // Clear the modified flag
   s_bModified = false;
 
@@ -303,12 +332,22 @@ void TLC5947::disableSPI() {
 
 void TLC5947::enable(void) {
   // Enable all outputs (BLANK low)
-  BLANKPORT &= ~(1<<BLANKPIN);
+  s_pnBlank[m_nChip].port &= ~(_BV(s_pnBlank[m_nChip].pin));
+}
+
+void TLC5947::enable(uint8_t nChip) {
+  // Enable all outputs (BLANK low)
+  s_pnBlank[nChip].port &= ~(_BV(s_pnBlank[nChip].pin));
 }
 
 void TLC5947::disable(void) {
   // Disable all outputs (BLANK high)
-  BLANKPORT |= (1<<BLANKPIN);
+  s_pnBlank[m_nChip].port |= _BV(s_pnBlank[m_nChip].pin);
+}
+
+void TLC5947::disable(uint8_t nChip) {
+  // Disable all outputs (BLANK high)
+  s_pnBlank[nChip].port |= _BV(s_pnBlank[nChip].pin);
 }
 
 void TLC5947::send(void) {
@@ -326,24 +365,37 @@ void TLC5947::send(void) {
 
 void TLC5947::latch(void) {
   // Latch the data to the outputs (rising edge of XLAT)
-  XLATPORT |= (1<<XLATPIN);
-  XLATPORT &= ~(1<<XLATPIN);
+  s_pnLatch[m_nChip].port |= _BV(s_pnLatch[m_nChip].pin);
+  s_pnLatch[m_nChip].port &= ~(_BV(s_pnLatch[m_nChip].pin));
+}
+
+void TLC5947::latch(uint8_t nChip) {
+  // Latch the data to the outputs (rising edge of XLAT)
+  s_pnLatch[nChip].port |= _BV(s_pnLatch[nChip].pin);
+  s_pnLatch[nChip].port &= ~(_BV(s_pnLatch[nChip].pin));
 }
 
 void TLC5947::update(void) {
+  // TODO: weed out duplicate calls to disable(), enable(), and latch()
   if (s_bModified) {
     // Enable SPI if it isn't already on
     if (!s_bSPIenabled) {
       enableSPI();
     }
     // Disable the outputs
-    disable();
+    for (uint8_t i = 0; i < s_nNumChips; i++) {
+      disable(i);
+    }
     // Shift the data out to the chips
     send();
     // Latch the data to the outputs
-    latch();
+    for (uint8_t i = 0; i < s_nNumChips; i++) {
+      latch(i);
+    }
     // Enable the outputs
-    enable();
+    for (uint8_t i = 0; i < s_nNumChips; i++) {
+      enable(i);
+    }
 
     // Clear the modified flag
     s_bModified = false;
