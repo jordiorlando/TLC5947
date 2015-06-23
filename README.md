@@ -18,10 +18,14 @@ This library uses pins 9, 10, 11, and 13 on the Arduino Uno. Please do not use t
 
 ## Functions:
 
-### TLC5947(nInitialValue)
-The constructor for the TLC5947 library.
+### TLC5947()
+The constructor for the TLC5947 library. If no pins are specified, the chip will default to whatever pins you chose for the first one.
+
+### TLC5947(nLatch, nBlank)
+The constructor for the TLC5947 library. You must specify a latch and blank pin for the first chip that is declared.
 #### Arguments
-- `nInitialValue`: Optional argument for the initial value assigned to every channel. Range is [0-4095]. Defaults to 0.
+- `nLatch`: The pin that this chip's latch control is connected to (e.g. PB5).
+- `nBlank`: The pin that this chip's blank control is connected to (e.g. PB3).
 
 ### chipID()
 Returns the ID number of the current chip.
@@ -50,6 +54,15 @@ Sets one channel to the specified value.
 ### clear()
 Sets all channels to 0.
 
+### enable()
+Enable the chip by pulling the BLANK pin low.
+
+### disable()
+Disable the chip by pulling the BLANK pin high.
+
+### latch()
+Latches the data to the outputs.
+
 ## Static Functions
 
 ### numChips()
@@ -63,35 +76,41 @@ Sets all channels on all chips to the specified value.
 ### clearAll()
 Sets all channels on all chips to 0.
 
-### shift(nShift, nValue);
-Shifts all data in all chips by the given number of channels. If nValue is left blank, a circular shift is performed, whereby the data being shifted out of the end gets added back to the beginning.
-#### Arguments
-- `nShift`: Number of channels to shift data by. Defaults to 1.
-- `nValue`: Brightness value to be shifted in. Range is [0-4095].
-
 ### enableSPI()
 Enable the SPI interface.
 
 ### disableSPI()
 Disable the SPI interface.
 
-### enable()
-Enable the chips by pulling the BLANK pin low.
+### enable(nChip)
+Enable the given chip by pulling the BLANK pin low.
+#### Arguments
+- `nChip`: The chip to be enabled.
 
-### disable()
-Disable the chips by pulling the BLANK pin high.
+### disable(nChip)
+Disable the given chip by pulling the BLANK pin high.
+#### Arguments
+- `nChip`: The chip to be disabled.
+
+### latch(nChip)
+Latches the data to the outputs.
+#### Arguments
+- `nChip`: The chip to be latched.
 
 ### send()
 Shifts the data out to the chips.
 
-### latch()
-Latches the data to the outputs.
-
 ### update()
 Calls enableSPI() if needed, then send() and latch(). This is all you should use unless your application requires finer control.
 
+### shift(nShift, nValue);
+Shifts all data in all chips by the given number of channels. If nValue is left blank, a circular shift is performed, whereby the data being shifted out of the end gets added back to the beginning.
+#### Arguments
+- `nShift`: Number of channels to shift data by. Defaults to 1.
+- `nValue`: Brightness value to be shifted in. Range is [0-4095].
+
 ## TODO
-- Improve documentation
-- Allow the user to choose a custom pin for XLAT
-- Allow for per-chip blank control
-- Fix the code for shifting an odd number of channels
+- [ ] Improve documentation
+- [x] Allow the user to choose a custom pin for XLAT
+- [x] Allow for per-chip blank control
+- [ ] Fix the code for shifting an odd number of channels
