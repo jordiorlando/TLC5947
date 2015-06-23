@@ -15,8 +15,8 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef PINDEF_H
-#define PINDEF_H
+#ifndef PINDEFS_H
+#define PINDEFS_H
 
 #define PA0 {0, &PORTA, &DDRA}
 #define PA1 {1, &PORTA, &DDRA}
