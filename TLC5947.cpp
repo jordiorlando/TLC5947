@@ -18,8 +18,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "TLC5947.h"
 
 // Static variable definitions
-pin* TLC5947::s_pnLatch;
-pin* TLC5947::s_pnBlank;
+uint8_t* TLC5947::s_pnLatch;
+uint8_t* TLC5947::s_pnBlank;
 uint8_t TLC5947::s_nNumChips = 0;
 uint16_t** TLC5947::s_pnValues;
 bool TLC5947::s_bModified = true;
@@ -32,7 +32,7 @@ TLC5947::TLC5947() : TLC5947(s_pnLatch[0], s_pnBlank[0]) {
   //#endif
 }
 
-TLC5947::TLC5947(pin nLatch, pin nBlank) {
+TLC5947::TLC5947(uint8_t nLatch, uint8_t nBlank) {
   // Set current ID based on number of total chips
   m_nChip = s_nNumChips;
   // Embiggen the data array
@@ -42,15 +42,15 @@ TLC5947::TLC5947(pin nLatch, pin nBlank) {
   s_pnBlank[m_nChip] = nBlank;
 
   // Set latch and blank (SS) to outputs
-  s_pnLatch[m_nChip].ddr |= _BV(s_pnLatch[m_nChip].pin);
-  s_pnBlank[m_nChip].ddr |= _BV(s_pnBlank[m_nChip].pin);
+  ddr(s_pnLatch[m_nChip], true);
+  ddr(s_pnBlank[m_nChip], true);
 
   // Set the BLANK pin high
   disable();
   // Ensure that the Latch Pin is off
-  s_pnLatch[m_nChip].port &= ~(_BV(s_pnLatch[m_nChip].pin));
+  out(s_pnLatch[m_nChip], false);
 
-  if (!s_nNumChips) {
+  if (!m_nChip) {
     // Enable the SPI interface
     enableSPI();
 
@@ -71,6 +71,51 @@ TLC5947::~TLC5947() {
   }
 }
 
+void TLC5947::ddr(uint8_t nPin, bool bState) {switch ((nPin - (nPin % 8)) / 8) {
+    case 0:
+      //bState ? DDRA |= _BV(nPin % 8) : DDRA &= ~(_BV(nPin % 8));
+      break;
+    case 1:
+      bState ? DDRB |= _BV(nPin % 8) : DDRB &= ~(_BV(nPin % 8));
+      break;
+    case 2:
+      bState ? DDRC |= _BV(nPin % 8) : DDRC &= ~(_BV(nPin % 8));
+      break;
+    case 3:
+      bState ? DDRD |= _BV(nPin % 8) : DDRD &= ~(_BV(nPin % 8));
+      break;
+    case 4:
+      //bState ? DDRE |= _BV(nPin % 8) : DDRE &= ~(_BV(nPin % 8));
+      break;
+    case 5:
+      //bState ? DDRF |= _BV(nPin % 8) : DDRF &= ~(_BV(nPin % 8));
+      break;
+  }
+}
+
+void TLC5947::out(uint8_t nPin, bool bState) {
+  switch ((nPin - (nPin % 8)) / 8) {
+    case 0:
+      //bState ? PORTA |= _BV(nPin % 8) : PORTA &= ~(_BV(nPin % 8));
+      break;
+    case 1:
+      bState ? PORTB |= _BV(nPin % 8) : PORTB &= ~(_BV(nPin % 8));
+      break;
+    case 2:
+      bState ? PORTC |= _BV(nPin % 8) : PORTC &= ~(_BV(nPin % 8));
+      break;
+    case 3:
+      bState ? PORTD |= _BV(nPin % 8) : PORTD &= ~(_BV(nPin % 8));
+      break;
+    case 4:
+      //bState ? PORTE |= _BV(nPin % 8) : PORTE &= ~(_BV(nPin % 8));
+      break;
+    case 5:
+      //bState ? PORTF |= _BV(nPin % 8) : PORTF &= ~(_BV(nPin % 8));
+      break;
+  }
+}
+
 void TLC5947::embiggen(void) {
   if (s_nNumChips) {
     // TODO: add a buffer in here so that we don't waste any space in RAM
@@ -79,8 +124,8 @@ void TLC5947::embiggen(void) {
     for (uint8_t i = 0; i < s_nNumChips + 1; i++) {
       s_pnValuesTemp[i] = new uint16_t[24];
     }
-    pin *s_pnLatchTemp = new pin[s_nNumChips + 1];
-    pin *s_pnBlankTemp = new pin[s_nNumChips + 1];
+    uint8_t *s_pnLatchTemp = new uint8_t[s_nNumChips + 1];
+    uint8_t *s_pnBlankTemp = new uint8_t[s_nNumChips + 1];
 
     // Copy the array to the new temporary array
     for (uint8_t i = 0; i < s_nNumChips; i++) {
@@ -115,8 +160,8 @@ void TLC5947::embiggen(void) {
       s_pnValues[i] = new uint16_t[24];
     }
 
-    s_pnLatch = new pin;
-    s_pnBlank = new pin;
+    s_pnLatch = new uint8_t;
+    s_pnBlank = new uint8_t;
   }
 
   s_nNumChips++;
@@ -332,22 +377,22 @@ void TLC5947::disableSPI() {
 
 void TLC5947::enable(void) {
   // Enable all outputs (BLANK low)
-  s_pnBlank[m_nChip].port &= ~(_BV(s_pnBlank[m_nChip].pin));
+  out(s_pnBlank[m_nChip], false);
 }
 
 void TLC5947::enable(uint8_t nChip) {
   // Enable all outputs (BLANK low)
-  s_pnBlank[nChip].port &= ~(_BV(s_pnBlank[nChip].pin));
+  out(s_pnBlank[nChip], false);
 }
 
 void TLC5947::disable(void) {
   // Disable all outputs (BLANK high)
-  s_pnBlank[m_nChip].port |= _BV(s_pnBlank[m_nChip].pin);
+  out(s_pnBlank[m_nChip], true);
 }
 
 void TLC5947::disable(uint8_t nChip) {
   // Disable all outputs (BLANK high)
-  s_pnBlank[nChip].port |= _BV(s_pnBlank[nChip].pin);
+  out(s_pnBlank[nChip], true);
 }
 
 void TLC5947::send(void) {
@@ -365,14 +410,14 @@ void TLC5947::send(void) {
 
 void TLC5947::latch(void) {
   // Latch the data to the outputs (rising edge of XLAT)
-  s_pnLatch[m_nChip].port |= _BV(s_pnLatch[m_nChip].pin);
-  s_pnLatch[m_nChip].port &= ~(_BV(s_pnLatch[m_nChip].pin));
+  out(s_pnLatch[m_nChip], true);
+  out(s_pnLatch[m_nChip], false);
 }
 
 void TLC5947::latch(uint8_t nChip) {
   // Latch the data to the outputs (rising edge of XLAT)
-  s_pnLatch[nChip].port |= _BV(s_pnLatch[nChip].pin);
-  s_pnLatch[nChip].port &= ~(_BV(s_pnLatch[nChip].pin));
+  out(s_pnLatch[nChip], true);
+  out(s_pnLatch[nChip], false);
 }
 
 void TLC5947::update(void) {

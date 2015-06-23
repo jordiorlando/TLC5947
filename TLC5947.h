@@ -20,59 +20,59 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include <avr/io.h>
 
-#define PA0 (pin){DDA0, PORTA, DDRA}
-#define PA1 (pin){DDA1, PORTA, DDRA}
-#define PA2 (pin){DDA2, PORTA, DDRA}
-#define PA3 (pin){DDA3, PORTA, DDRA}
-#define PA4 (pin){DDA4, PORTA, DDRA}
-#define PA5 (pin){DDA5, PORTA, DDRA}
-#define PA6 (pin){DDA6, PORTA, DDRA}
-#define PA7 (pin){DDA7, PORTA, DDRA}
+#define PA0 0x00
+#define PA1 0x01
+#define PA2 0x02
+#define PA3 0x03
+#define PA4 0x04
+#define PA5 0x05
+#define PA6 0x06
+#define PA7 0x07
 
-#define PB0 (pin){DDB0, PORTB, DDRB}
-#define PB1 (pin){DDB1, PORTB, DDRB}
-#define PB2 (pin){DDB2, PORTB, DDRB}
-#define PB3 (pin){DDB3, PORTB, DDRB}
-#define PB4 (pin){DDB4, PORTB, DDRB}
-#define PB5 (pin){DDB5, PORTB, DDRB}
-#define PB6 (pin){DDB6, PORTB, DDRB}
-#define PB7 (pin){DDB7, PORTB, DDRB}
+#define PB0 0x08
+#define PB1 0x09
+#define PB2 0x0A
+#define PB3 0x0B
+#define PB4 0x0C
+#define PB5 0x0D
+#define PB6 0x0E
+#define PB7 0x0F
 
-#define PC0 (pin){DDC0, PORTC, DDRC}
-#define PC1 (pin){DDC1, PORTC, DDRC}
-#define PC2 (pin){DDC2, PORTC, DDRC}
-#define PC3 (pin){DDC3, PORTC, DDRC}
-#define PC4 (pin){DDC4, PORTC, DDRC}
-#define PC5 (pin){DDC5, PORTC, DDRC}
-#define PC6 (pin){DDC6, PORTC, DDRC}
-#define PC7 (pin){DDC7, PORTC, DDRC}
+#define PC0 0x10
+#define PC1 0x11
+#define PC2 0x12
+#define PC3 0x13
+#define PC4 0x14
+#define PC5 0x15
+#define PC6 0x16
+#define PC7 0x17
 
-#define PD0 (pin){DDD0, PORTD, DDRD}
-#define PD1 (pin){DDD1, PORTD, DDRD}
-#define PD2 (pin){DDD2, PORTD, DDRD}
-#define PD3 (pin){DDD3, PORTD, DDRD}
-#define PD4 (pin){DDD4, PORTD, DDRD}
-#define PD5 (pin){DDD5, PORTD, DDRD}
-#define PD6 (pin){DDD6, PORTD, DDRD}
-#define PD7 (pin){DDD7, PORTD, DDRD}
+#define PD0 0x18
+#define PD1 0x19
+#define PD2 0x1A
+#define PD3 0x1B
+#define PD4 0x1C
+#define PD5 0x1D
+#define PD6 0x1E
+#define PD7 0x1F
 
-#define PE0 (pin){DDE0, PORTE, DDRE}
-#define PE1 (pin){DDE1, PORTE, DDRE}
-#define PE2 (pin){DDE2, PORTE, DDRE}
-#define PE3 (pin){DDE3, PORTE, DDRE}
-#define PE4 (pin){DDE4, PORTE, DDRE}
-#define PE5 (pin){DDE5, PORTE, DDRE}
-#define PE6 (pin){DDE6, PORTE, DDRE}
-#define PE7 (pin){DDE7, PORTE, DDRE}
+#define PE0 0x20
+#define PE1 0x21
+#define PE2 0x22
+#define PE3 0x23
+#define PE4 0x24
+#define PE5 0x25
+#define PE6 0x26
+#define PE7 0x27
 
-#define PF0 (pin){DDF0, PORTF, DDRF}
-#define PF1 (pin){DDF1, PORTF, DDRF}
-#define PF2 (pin){DDF2, PORTF, DDRF}
-#define PF3 (pin){DDF3, PORTF, DDRF}
-#define PF4 (pin){DDF4, PORTF, DDRF}
-#define PF5 (pin){DDF5, PORTF, DDRF}
-#define PF6 (pin){DDF6, PORTF, DDRF}
-#define PF7 (pin){DDF7, PORTF, DDRF}
+#define PF0 0x28
+#define PF1 0x29
+#define PF2 0x2A
+#define PF3 0x2B
+#define PF4 0x2C
+#define PF5 0x2D
+#define PF6 0x2E
+#define PF7 0x2F
 
 // Pin definitions
 #if defined (__AVR_ATmega328__) || defined (__AVR_ATmega328P__)
@@ -104,17 +104,11 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
   #define SINDDR    DDRB
 #endif
 
-struct pin {
-  uint8_t pin;
-  uint8_t port;
-  uint8_t ddr;
-};
-
 // Declare TLC5947 class and its member functions
 class TLC5947 {
   public:
     TLC5947();
-    TLC5947(pin nLatch, pin nBlank);
+    TLC5947(uint8_t nLatch, uint8_t nBlank);
     ~TLC5947();
 
     uint8_t chipID(void);
@@ -144,10 +138,13 @@ class TLC5947 {
     static void update(void);
 
   private:
+    static void ddr(uint8_t nPin, bool bState);
+    static void out(uint8_t nPin, bool bState);
+    
     static void embiggen(void);
 
-    static pin *s_pnLatch;
-    static pin *s_pnBlank;
+    static uint8_t *s_pnLatch;
+    static uint8_t *s_pnBlank;
 
     static uint8_t s_nNumChips;
     static uint16_t **s_pnValues;
