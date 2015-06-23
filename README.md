@@ -95,7 +95,7 @@ Shifts all data in all chips by the given number of channels. If nValue is left 
 - `nValue`: Brightness value to be shifted in. Range is [0-4095].
 
 ## TODO
-- [ ] Improve documentation
+- [ ] Improve documentation (and comment code!!)
 - [x] Allow the user to choose a custom pin for XLAT
 - [x] Allow for per-chip blank control
 - [ ] Fix the code for shifting an odd number of channels
