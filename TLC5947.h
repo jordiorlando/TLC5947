@@ -51,11 +51,8 @@ class TLC5947 {
     static void disableSPI(void);
 
     void enable(void);
-    static void enable(uint8_t nChip);
     void disable(void);
-    static void disable(uint8_t nChip);
     void latch(void);
-    static void latch(uint8_t nChip);
 
     static void send(void);
     static void update(void);
@@ -64,6 +61,10 @@ class TLC5947 {
 
   private:
     static void embiggen(void);
+
+    static void enable(uint8_t nChip);
+    static void disable(uint8_t nChip);
+    static void latch(uint8_t nChip);
 
     static const pin s_nSCK;
     static const pin s_nMOSI;

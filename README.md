@@ -82,21 +82,6 @@ Enable the SPI interface.
 ### disableSPI()
 Disable the SPI interface.
 
-### enable(nChip)
-Enable the given chip by pulling the BLANK pin low.
-#### Arguments
-- `nChip`: The chip to be enabled.
-
-### disable(nChip)
-Disable the given chip by pulling the BLANK pin high.
-#### Arguments
-- `nChip`: The chip to be disabled.
-
-### latch(nChip)
-Latches the data to the outputs.
-#### Arguments
-- `nChip`: The chip to be latched.
-
 ### send()
 Shifts the data out to the chips.
 
@@ -114,3 +99,4 @@ Shifts all data in all chips by the given number of channels. If nValue is left 
 - [x] Allow the user to choose a custom pin for XLAT
 - [x] Allow for per-chip blank control
 - [ ] Fix the code for shifting an odd number of channels
+- [ ] Do a check for duplicate pins when calling `update()`
