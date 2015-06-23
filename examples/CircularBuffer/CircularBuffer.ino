@@ -53,7 +53,7 @@
 
 #include <TLC5947.h>
 
-TLC5947 TLC;
+TLC5947 TLC(PB1, PB2);
 
 // Connect a potentiometer to this pin
 #define INPUT_PIN A0

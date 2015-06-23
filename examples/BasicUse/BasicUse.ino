@@ -53,7 +53,7 @@
 
 #include <TLC5947.h> // Include statement for the TLC5947 library
 
-TLC5947 TLC; // Declare a new TLC5947 instance (repeat as necessary)
+TLC5947 TLC(PB1, PB2); // Declare a new TLC5947 instance (repeat as necessary)
 
 // Create an array to store the LED values
 uint16_t *pnArray = new uint16_t[24 * TLC5947::numChips()];
