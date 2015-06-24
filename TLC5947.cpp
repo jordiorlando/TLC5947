@@ -63,6 +63,7 @@ TLC5947::TLC5947(pin nLatch, pin nBlank) {
   // Set all channels to start at 0
   clear();
   update();
+  enable();
 }
 
 TLC5947::~TLC5947() {
@@ -291,19 +292,11 @@ void TLC5947::update(void) {
     if (!s_bSPIenabled) {
       enableSPI();
     }
-    // Disable the outputs
-    for (uint8_t i = 0; i < s_nNumChips; i++) {
-      disable(i);
-    }
     // Shift the data out to the chips
     send();
     // Latch the data to the outputs
     for (uint8_t i = 0; i < s_nNumChips; i++) {
       latch(i);
-    }
-    // Enable the outputs
-    for (uint8_t i = 0; i < s_nNumChips; i++) {
-      enable(i);
     }
 
     // Clear the modified flag
