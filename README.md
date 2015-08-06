@@ -1,4 +1,4 @@
-# TLC5947 Library for Arduino
+# TLC5947 Library for AVR-G++
 
 ## Features
 - Supports up to 255 daisy-chained chips.
@@ -11,10 +11,10 @@ The TLC5947 has 12 bits of resolution for each of its 24 channels. Each channel 
 If you are daisy-chaining more than one TLC5947, connect the SOUT of the first TLC to the SIN of the next.  All the other pins should just be connected together. The one exception is that each TLC needs it's own resistor between  pin 31 and GND.
 
 - The 1k resistor between TLC pin 31 and GND will let ~30mA through each LED. This is calculated by the equation I = 49.2 / R. This doesn't depend on the LED driving voltage.
-- (Optional): put a pull-up resistor (~10k) between BLANK and VCC so that all the LEDs will turn off when the Arduino is reset.
+- (Optional): put a pull-up resistor (~10k) between BLANK and VCC so that all the LEDs will turn off when the AVR is reset.
 
 ### Compatibility
-This library uses pins 9, 10, 11, and 13 on the Arduino Uno. Please do not use these pins. It also uses SPI to send the data, so it may conflict with any other libraries that attempt to use SPI.
+This library uses SPI to communicate, so it may conflict with any other libraries use SPI.
 
 ## Functions:
 
