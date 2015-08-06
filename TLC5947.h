@@ -20,6 +20,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include <avr/io.h>
 #include "pindefs.h"
+#include "new.h"
 
 struct pin {
   uint8_t pin;
