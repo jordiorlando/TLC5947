@@ -21,35 +21,35 @@ This library uses SPI to communicate, so it may conflict with any other librarie
 ### TLC5947()
 The constructor for the TLC5947 library. If no pins are specified, the chip will default to whatever pins you chose for the first one.
 
-### TLC5947(nLatch, nBlank)
+### TLC5947(latch, blank)
 The constructor for the TLC5947 library. You must specify a latch and blank pin for the first chip that is declared.
 #### Arguments
-- `nLatch`: The pin that this chip's latch control is connected to (e.g. PB5).
-- `nBlank`: The pin that this chip's blank control is connected to (e.g. PB3).
+- `latch`: The pin that this chip's latch control is connected to (e.g. PB5).
+- `blank`: The pin that this chip's blank control is connected to (e.g. PB3).
 
 ### chipID()
 Returns the ID number of the current chip.
 
-### read(nChannel)
+### read(channel)
 Returns the current value of the specified channel.
 #### Arguments
-- `nChannel`: Channel to be read.
+- `channel`: Channel to be read.
 
-### set(anValues[24])
+### set(values[24])
 Sets all channels based on the given array.
 #### Arguments
-- `anValues[24]`: Brightness values for all channels. Range is [0-4095].
+- `values[24]`: Brightness values for all channels. Range is [0-4095].
 
-### set(nValue)
+### set(value)
 Sets all channels to the same value.
 #### Arguments
-- `nValue`: Brightness value for all channels. Range is [0-4095].
+- `value`: Brightness value for all channels. Range is [0-4095].
 
-### set(nChannel, nValue)
+### set(channel, value)
 Sets one channel to the specified value.
 #### Arguments
-- `nChannel`: Channel to be set.
-- `nValue`: Brightness value for the channel. Range is [0-4095].
+- `channel`: Channel to be set.
+- `value`: Brightness value for the channel. Range is [0-4095].
 
 ### clear()
 Sets all channels to 0.
@@ -68,10 +68,10 @@ Latches the data to the outputs.
 ### numChips()
 Returns the total number of chips.
 
-### setAll(nValue);
+### setAll(value);
 Sets all channels on all chips to the specified value.
 #### Arguments
-- `nValue`: Brightness value for the channel. Range is [0-4095].
+- `value`: Brightness value for the channel. Range is [0-4095].
 
 ### clearAll()
 Sets all channels on all chips to 0.
@@ -88,11 +88,11 @@ Shifts the data out to the chips.
 ### update()
 Calls enableSPI() if needed, then send() and latch(). This is all you should use unless your application requires finer control.
 
-### shift(nShift, nValue);
-Shifts all data in all chips by the given number of channels. If nValue is left blank, a circular shift is performed, whereby the data being shifted out of the end gets added back to the beginning.
+### shift(shift, value);
+Shifts all data in all chips by the given number of channels. If value is left blank, a circular shift is performed, whereby the data being shifted out of the end gets added back to the beginning.
 #### Arguments
-- `nShift`: Number of channels to shift data by. Defaults to 1.
-- `nValue`: Brightness value to be shifted in. Range is [0-4095].
+- `shift`: Number of channels to shift data by. Defaults to 1.
+- `value`: Brightness value to be shifted in. Range is [0-4095].
 
 ## TODO
 - [ ] Improve documentation (and comment code!!)

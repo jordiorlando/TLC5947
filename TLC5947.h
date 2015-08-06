@@ -32,18 +32,18 @@ struct pin {
 class TLC5947 {
   public:
     TLC5947();
-    TLC5947(pin nLatch, pin nBlank);
+    TLC5947(pin latch, pin blank);
     ~TLC5947();
 
     uint8_t chipID(void);
     static uint8_t numChips(void);
 
-    uint16_t read(uint8_t nChannel);
+    uint16_t read(uint8_t channel);
 
-    void set(uint16_t anValues[24]);
-    void set(uint16_t nValue);
-    void set(uint8_t nChannel, uint16_t nValue);
-    static void setAll(uint16_t nValue);
+    void set(uint16_t values[24]);
+    void set(uint16_t value);
+    void set(uint8_t channel, uint16_t value);
+    static void setAll(uint16_t value);
 
     void clear(void);
     static void clearAll(void);
@@ -58,27 +58,27 @@ class TLC5947 {
     static void send(void);
     static void update(void);
 
-    static void shift(uint16_t nShift = 1, uint16_t nValue = 0xFFFF);
+    static void shift(uint16_t shift = 1, uint16_t value = 0xFFFF);
 
   private:
     static void embiggen(void);
 
-    static void enable(uint8_t nChip);
-    static void disable(uint8_t nChip);
-    static void latch(uint8_t nChip);
+    static void enable(uint8_t chip);
+    static void disable(uint8_t chip);
+    static void latch(uint8_t chip);
 
-    static const pin s_nSCK;
-    static const pin s_nMOSI;
-    static pin *s_pnLatch;
-    static pin *s_pnBlank;
+    static const pin s_SCK;
+    static const pin s_MOSI;
+    static pin *s_latch;
+    static pin *s_blank;
 
-    static uint8_t s_nNumChips;
-    static uint16_t **s_pnValues;
+    static uint8_t s_numChips;
+    static uint16_t **s_values;
 
-    static bool s_bModified;
-    static bool s_bSPIenabled;
+    static bool s_modified;
+    static bool s_SPIenabled;
 
-    uint8_t m_nChip;
+    uint8_t m_chip;
 };
 
 #endif
