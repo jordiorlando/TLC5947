@@ -72,11 +72,11 @@ class TLC5947 {
     static pin *s_latch;
     static pin *s_blank;
 
-    static uint8_t s_numChips;
-    static uint16_t **s_values;
-
     static bool s_modified;
     static bool s_SPIenabled;
+
+    static uint8_t s_numChips;
+    static uint16_t **s_values;
 
     uint8_t m_chip;
 };

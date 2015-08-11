@@ -18,14 +18,20 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "TLC5947.h"
 
 // Static variable definitions
+// Shared SPI pins
 const pin TLC5947::s_SCK = SPI_SCK;
 const pin TLC5947::s_MOSI = SPI_MOSI;
+// Per-chip XLAT and BLANK pins
 pin* TLC5947::s_latch;
 pin* TLC5947::s_blank;
-uint8_t TLC5947::s_numChips = 0;
-uint16_t** TLC5947::s_values;
+// Data freshness flag
 bool TLC5947::s_modified = true;
+// SPI status flag
 bool TLC5947::s_SPIenabled = false;
+// Number of daisy-chained chips
+uint8_t TLC5947::s_numChips = 0;
+// Array for all channel values
+uint16_t** TLC5947::s_values;
 
 TLC5947::TLC5947() : TLC5947(s_latch[0], s_blank[0]) {
   // TODO: warn the user if they don't initialize the first chip
@@ -40,23 +46,25 @@ TLC5947::TLC5947(pin latch, pin blank) {
   // Embiggen the data array
   embiggen();
 
+  // Set the XLAT and BLANK pins for this chip
   s_latch[m_chip] = latch;
   s_blank[m_chip] = blank;
 
-  // Set latch and blank (SS) to outputs
+  // Set XLAT and BLANK to outputs
   *s_latch[m_chip].ddr |= _BV(s_latch[m_chip].pin);
   *s_blank[m_chip].ddr |= _BV(s_blank[m_chip].pin);
 
-  // Set the BLANK pin high
+  // Set the BLANK pin high to clear all outputs
   disable();
-  // Ensure that the Latch Pin is off
+  // Ensure that the XLAT pin is off
   *s_latch[m_chip].port &= ~(_BV(s_latch[m_chip].pin));
 
+  // Enable the SPI interface if this is the first chip
   if (!m_chip) {
     // Enable the SPI interface
     enableSPI();
 
-    // Send a blank byte so that the SPIF bit is set
+    // Send a zero byte so that the SPIF bit is set
     SPDR = 0;
   }
 
@@ -68,6 +76,7 @@ TLC5947::TLC5947(pin latch, pin blank) {
 
 TLC5947::~TLC5947() {
   // TODO: properly shrink the arrays
+
   if (!m_chip) {
     // Disable the SPI interface
     disableSPI();
@@ -77,7 +86,8 @@ TLC5947::~TLC5947() {
 void TLC5947::embiggen(void) {
   if (s_numChips) {
     // TODO: add a buffer in here so that we don't waste any space in RAM
-    // Allocate a dynamic multidimensional array
+
+    // Allocate temporary dynamic multidimensional arrays
     uint16_t **s_valuesTemp = new uint16_t*[s_numChips + 1];
     for (uint8_t i = 0; i < s_numChips + 1; i++) {
       s_valuesTemp[i] = new uint16_t[24];
@@ -85,7 +95,7 @@ void TLC5947::embiggen(void) {
     pin *s_latchTemp = new pin[s_numChips + 1];
     pin *s_blankTemp = new pin[s_numChips + 1];
 
-    // Copy the array to the new temporary array
+    // Copy the old arrays to the new temporary arrays
     for (uint8_t i = 0; i < s_numChips; i++) {
       for (uint8_t ii = 0; ii < 24; ii++) {
         s_valuesTemp[i][ii] = s_values[i][ii];
@@ -95,7 +105,7 @@ void TLC5947::embiggen(void) {
       s_blankTemp[i] = s_blank[i];
     }
 
-    // Delete the dynamic multidimensional array
+    // Delete the old dynamic multidimensional arrays
     for (uint8_t i = 0; i < s_numChips; i++) {
       delete[] s_values[i];
     }
@@ -103,11 +113,11 @@ void TLC5947::embiggen(void) {
     delete[] s_latch;
     delete[] s_blank;
 
-    // Point the array at the new array location
+    // Point the old arrays at the new array locations
     s_values = s_valuesTemp;
     s_latch = s_latchTemp;
     s_blank = s_blankTemp;
-    // Nullify the temporary pointer
+    // Nullify the temporary pointers
     s_valuesTemp = 0;
     s_latchTemp = 0;
     s_blankTemp = 0;
@@ -143,7 +153,9 @@ uint16_t TLC5947::read(uint8_t channel) {
 }
 
 void TLC5947::set(uint16_t values[24]) {
+  // Set all 24 channels
   for (uint8_t i = 0; i < 24; i++) {
+    // 12bit resolution means a maximum of 4095
     values[i] &= 0x0FFF;
 
     if (s_values[m_chip][i] != values[i]) {
@@ -154,9 +166,10 @@ void TLC5947::set(uint16_t values[24]) {
 }
 
 void TLC5947::set(uint16_t value) {
+  // 12bit resolution means a maximum of 4095
   value &= 0x0FFF;
 
-  // Set all values to value
+  // Set all channels to value
   for (uint8_t i = 0; i < 24; i++) {
     if (s_values[m_chip][i] != value) {
       s_values[m_chip][i] = value;
@@ -166,8 +179,10 @@ void TLC5947::set(uint16_t value) {
 }
 
 void TLC5947::set(uint8_t channel, uint16_t value) {
+  // 12bit resolution means a maximum of 4095
   value &= 0x0FFF;
 
+  // TODO: make this more efficient
   uint8_t i;
   if (channel < 24) {
     i = m_chip;
@@ -175,6 +190,7 @@ void TLC5947::set(uint8_t channel, uint16_t value) {
     i = (channel - (channel % 24)) / 24;
   }
 
+  // Set the given channel to value
   if (s_values[i][channel % 24] != value) {
     s_values[i][channel % 24] = value;
     s_modified = true;
@@ -182,8 +198,10 @@ void TLC5947::set(uint8_t channel, uint16_t value) {
 }
 
 void TLC5947::setAll(uint16_t value) {
+  // 12bit resolution means a maximum of 4095
   value &= 0x0FFF;
 
+  // Set all chips to value
   for (uint8_t i = 0; i < s_numChips; i++) {
     for (uint8_t ii = 0; ii < 24; ii++) {
       if (s_values[i][ii] != value) {
@@ -195,7 +213,7 @@ void TLC5947::setAll(uint16_t value) {
 }
 
 void TLC5947::clear(void) {
-  // Set all values to zero
+  // Set all channels to zero
   for (uint8_t i = 0; i < 24; i++) {
     if (s_values[m_chip][i]) {
       s_values[m_chip][i] = 0;
@@ -221,12 +239,13 @@ void TLC5947::enableSPI() {
   *s_SCK.ddr |= _BV(s_SCK.pin);
   *s_MOSI.ddr |= _BV(s_MOSI.pin);
 
-  // Enable SPI, master
+  // Enable SPI as master
   SPCR = (1<<SPE) | (1<<MSTR);
 
-  // Set clock rate fck/2
+  // Set clock rate to fck/2
   SPSR |= (1<<SPI2X);
 
+  // Set the SPI status flag
   s_SPIenabled = true;
 }
 
@@ -237,6 +256,7 @@ void TLC5947::disableSPI() {
   // Reset clock rate
   SPSR &= ~(1<<SPI2X);
 
+  // Clear the SPI status flag
   s_SPIenabled = false;
 }
 
@@ -304,8 +324,7 @@ void TLC5947::update(void) {
   }
 }
 
-// TODO: warn the user if they have modified anything before calling shift(). In
-// this situation, the un-sent data will be lost.
+// TODO: warn the user if they have modified anything before calling shift().
 void TLC5947::shift(uint16_t shift, uint16_t value) {
   if (shift >= (s_numChips * 24)) {
     shift %= (s_numChips * 24);
