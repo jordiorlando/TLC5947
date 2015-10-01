@@ -23,11 +23,11 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 // Static variable definitions
 // Shared SPI pins
-const pin TLC5947::s_SCK = SPI_SCK;
-const pin TLC5947::s_MOSI = SPI_MOSI;
+const pin_t TLC5947::s_SCK = SPI_SCK;
+const pin_t TLC5947::s_MOSI = SPI_MOSI;
 // Per-chip XLAT and BLANK pins
-pin* TLC5947::s_latch;
-pin* TLC5947::s_blank;
+pin_t* TLC5947::s_latch;
+pin_t* TLC5947::s_blank;
 // Data freshness flag
 bool TLC5947::s_modified = true;
 // SPI status flag
@@ -44,7 +44,7 @@ TLC5947::TLC5947() : TLC5947(s_latch[0], s_blank[0]) {
   //#endif
 }
 
-TLC5947::TLC5947(pin latch, pin blank) {
+TLC5947::TLC5947(pin_t latch, pin_t blank) {
   // Set current ID based on number of total chips
   m_chip = s_numChips;
   // Embiggen the data array
@@ -96,8 +96,8 @@ void TLC5947::embiggen(void) {
     for (uint8_t i = 0; i < s_numChips + 1; i++) {
       s_valuesTemp[i] = new uint16_t[CHANNELS];
     }
-    pin *s_latchTemp = new pin[s_numChips + 1];
-    pin *s_blankTemp = new pin[s_numChips + 1];
+    pin_t *s_latchTemp = new pin_t[s_numChips + 1];
+    pin_t *s_blankTemp = new pin_t[s_numChips + 1];
 
     // Copy the old arrays to the new temporary arrays
     for (uint8_t i = 0; i < s_numChips; i++) {
@@ -132,8 +132,8 @@ void TLC5947::embiggen(void) {
       s_values[i] = new uint16_t[CHANNELS];
     }
 
-    s_latch = new pin;
-    s_blank = new pin;
+    s_latch = new pin_t;
+    s_blank = new pin_t;
   }
 
   s_numChips++;
