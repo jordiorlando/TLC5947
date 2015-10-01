@@ -18,6 +18,12 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef PINDEFS_H
 #define PINDEFS_H
 
+struct pin {
+  uint8_t pin;
+  volatile uint8_t *port;
+  volatile uint8_t *ddr;
+};
+
 #define PA0 {0, &PORTA, &DDRA}
 #define PA1 {1, &PORTA, &DDRA}
 #define PA2 {2, &PORTA, &DDRA}

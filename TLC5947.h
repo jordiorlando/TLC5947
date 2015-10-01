@@ -22,12 +22,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "pindefs.h"
 #include "new.h"
 
-struct pin {
-  uint8_t pin;
-  volatile uint8_t *port;
-  volatile uint8_t *ddr;
-};
-
 // Declare TLC5947 class and its member functions
 class TLC5947 {
   public:
